@@ -14,12 +14,20 @@ export function EntryGate({ messenger }: Props) {
   const gate = messenger.gateCopy;
 
   return (
-    <main className="grid min-h-screen place-items-center bg-[#07080c] px-4 text-white">
-      <div className="w-full max-w-md rounded-[32px] border border-white/10 bg-white/[0.04] p-6 shadow-2xl shadow-black/40 backdrop-blur-xl">
-        <p className="text-xs uppercase tracking-[0.35em] text-white/35">Irshad private access</p>
-        <h1 className="mt-3 text-3xl font-semibold">Enter access code</h1>
-        <p className="mt-2 text-sm leading-6 text-white/50">
-          This workspace is locked to the two approved people. The access code unlocks the site, then each profile uses its own password.
+    <main className="relative grid min-h-screen place-items-center overflow-hidden bg-[#07080c] px-4 text-white">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(88,101,242,0.18),transparent_40%),radial-gradient(circle_at_bottom,rgba(0,194,255,0.08),transparent_35%)]" />
+      <div className="relative w-full max-w-md rounded-[36px] border border-white/10 bg-white/[0.05] p-6 shadow-2xl shadow-black/50 backdrop-blur-2xl md:p-8">
+        <div className="mb-5 flex items-center gap-3">
+          <div className="grid h-12 w-12 place-items-center rounded-2xl border border-white/10 bg-white/5 text-lg font-semibold text-cyan-200">
+            I
+          </div>
+          <div>
+            <p className="text-xs uppercase tracking-[0.35em] text-white/35">Irshad private access</p>
+            <h1 className="text-2xl font-semibold">Secure entry gate</h1>
+          </div>
+        </div>
+        <p className="text-sm leading-6 text-white/55">
+          This workspace is locked to the two approved people. Enter the access code first, then unlock your profile with its own password.
         </p>
 
         {messenger.gateStatus === "locked" ? (
@@ -41,7 +49,7 @@ export function EntryGate({ messenger }: Props) {
               Show code
             </label>
             {gate.gateError ? <p className="text-sm text-red-300">{gate.gateError}</p> : null}
-            <Button className="h-12 w-full rounded-2xl" onClick={gate.submitEntryPassword}>
+            <Button className="h-12 w-full rounded-2xl shadow-lg shadow-accent/20" onClick={gate.submitEntryPassword}>
               Unlock
             </Button>
           </div>
@@ -70,7 +78,7 @@ export function EntryGate({ messenger }: Props) {
                   className={`rounded-2xl border px-3 py-3 text-left ${
                     messenger.activeUser === profile ? "border-accent/60 bg-accent/10" : "border-white/10 bg-white/5"
                   }`}
-                  onClick={() => messenger.setActiveUser(profile)}
+                  onClick={() => messenger.switchProfile(profile)}
                 >
                   <div className="text-sm font-medium">{profile}</div>
                   <div className="text-xs text-white/45">{profile === "Cat" ? "Quiet operator" : "Fast operator"}</div>
@@ -98,7 +106,7 @@ export function EntryGate({ messenger }: Props) {
 
             {gate.profileError ? <p className="text-sm text-red-300">{gate.profileError}</p> : null}
 
-            <Button className="h-12 w-full rounded-2xl" onClick={gate.saveProfile}>
+            <Button className="h-12 w-full rounded-2xl shadow-lg shadow-accent/20" onClick={gate.saveProfile}>
               Continue as {messenger.activeUser}
             </Button>
 
@@ -111,4 +119,3 @@ export function EntryGate({ messenger }: Props) {
     </main>
   );
 }
-

@@ -79,6 +79,18 @@ export function SettingsPanel({ messenger }: Props) {
           <button className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-left text-sm" onClick={() => messenger.setToast("Device revocation ready")}>
             Device management
           </button>
+          <button
+            className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-left text-sm"
+            onClick={() => messenger.resetSessionCookie()}
+          >
+            Clear entry session
+          </button>
+          <button
+            className="rounded-2xl border border-rose-400/30 bg-rose-500/10 px-3 py-2 text-left text-sm text-rose-200"
+            onClick={() => messenger.logout()}
+          >
+            Logout
+          </button>
         </Section>
 
         <Section title="Toast / Status">
@@ -93,4 +105,3 @@ export function SettingsPanel({ messenger }: Props) {
     </aside>
   );
 }
-

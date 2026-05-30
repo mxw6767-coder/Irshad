@@ -37,7 +37,7 @@ export function ChatSidebar({ messenger }: Props) {
                 "rounded-2xl border px-3 py-3 text-left transition focus:outline-none focus:ring-2 focus:ring-accent/70",
                 messenger.activeUser === user ? "border-accent/50 bg-accent/15" : "border-white/10 bg-white/5 hover:bg-white/10",
               )}
-              onClick={() => messenger.setActiveUser(user)}
+              onClick={() => messenger.switchProfile(user)}
             >
               <div className="flex items-center justify-between gap-2">
                 <div>
@@ -101,4 +101,3 @@ export function ChatSidebar({ messenger }: Props) {
     </aside>
   );
 }
-

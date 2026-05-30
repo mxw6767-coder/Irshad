@@ -107,6 +107,14 @@ const storageKeys = {
   onboarding: "irshad.profile.onboarded",
 };
 
+function setCookie(name: string, value: string, maxAgeSeconds = 31536000) {
+  document.cookie = `${name}=${value}; path=/; max-age=${maxAgeSeconds}; samesite=strict`;
+}
+
+function clearCookie(name: string) {
+  document.cookie = `${name}=; path=/; max-age=0; samesite=strict`;
+}
+
 export function useMessenger() {
   const [gateStatus, setGateStatus] = useState<GateStatus>("locked");
   const [gatePassword, setGatePassword] = useState("");
@@ -137,6 +145,7 @@ export function useMessenger() {
   const [profileError, setProfileError] = useState<string | null>(null);
   const [entryPasswordInput, setEntryPasswordInput] = useState("");
   const [visiblePassword, setVisiblePassword] = useState(false);
+  const [profileUnlocked, setProfileUnlocked] = useState(false);
   const messageListRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -146,8 +155,10 @@ export function useMessenger() {
     if (storedProfile === "Cat" || storedProfile === "Fox") setActiveUser(storedProfile);
     if (entryGranted) {
       setGateStatus(onboarded ? "ready" : "need_profile");
+      setProfileUnlocked(onboarded);
     } else {
       setGateStatus("locked");
+      setProfileUnlocked(false);
     }
   }, []);
 
@@ -315,7 +326,7 @@ export function useMessenger() {
       setGateError("Wrong access code");
       return;
     }
-    document.cookie = "irshad_entry_ok=1; path=/; max-age=31536000; samesite=strict";
+    setCookie("irshad_entry_ok", "1");
     window.localStorage.setItem(storageKeys.gate, "true");
     setGateStatus(window.localStorage.getItem(storageKeys.onboarding) === "true" ? "ready" : "need_profile");
     setGateError(null);
@@ -340,8 +351,9 @@ export function useMessenger() {
       window.localStorage.setItem(passwordStoreKey, profilePassword);
       window.localStorage.setItem(storageKeys.activeUser, activeUser);
       window.localStorage.setItem(storageKeys.onboarding, "true");
-      document.cookie = `irshad_profile_${activeUser.toLowerCase()}=1; path=/; max-age=31536000; samesite=strict`;
+      setCookie(`irshad_profile_${activeUser.toLowerCase()}`, "1");
       setGateStatus("ready");
+      setProfileUnlocked(true);
       setProfileError(null);
       return;
     }
@@ -352,9 +364,42 @@ export function useMessenger() {
     }
     window.localStorage.setItem(storageKeys.activeUser, activeUser);
     window.localStorage.setItem(storageKeys.onboarding, "true");
-    document.cookie = `irshad_profile_${activeUser.toLowerCase()}=1; path=/; max-age=31536000; samesite=strict`;
+    setCookie(`irshad_profile_${activeUser.toLowerCase()}`, "1");
     setGateStatus("ready");
+    setProfileUnlocked(true);
     setProfileError(null);
+  };
+
+  const switchProfile = (profile: DemoUser) => {
+    setActiveUser(profile);
+    window.localStorage.setItem(storageKeys.activeUser, profile);
+    setProfileUnlocked(Boolean(window.localStorage.getItem(`irshad_profile_${profile.toLowerCase()}`)));
+    setToast(`Switched to ${profile}`);
+  };
+
+  const logout = () => {
+    window.localStorage.removeItem(storageKeys.gate);
+    window.localStorage.removeItem(storageKeys.onboarding);
+    window.localStorage.removeItem(storageKeys.activeUser);
+    clearCookie("irshad_entry_ok");
+    clearCookie("irshad_profile_cat");
+    clearCookie("irshad_profile_fox");
+    setGateStatus("locked");
+    setEntryPasswordInput("");
+    setProfilePassword("");
+    setProfileConfirmPassword("");
+    setGateError(null);
+    setProfileError(null);
+    setProfileUnlocked(false);
+    setToast("Logged out");
+  };
+
+  const resetSessionCookie = () => {
+    clearCookie("irshad_entry_ok");
+    window.localStorage.removeItem(storageKeys.gate);
+    window.localStorage.removeItem(storageKeys.onboarding);
+    setGateStatus("locked");
+    setToast("Entry session cleared");
   };
 
   const sendMessage = async (plaintext: string) => {
@@ -486,10 +531,14 @@ export function useMessenger() {
   return {
     gateStatus,
     gateCopy,
+    profileUnlocked,
     section,
     setSection,
     activeUser,
     setActiveUser,
+    switchProfile,
+    logout,
+    resetSessionCookie,
     search,
     setSearch,
     conversationSearch,
