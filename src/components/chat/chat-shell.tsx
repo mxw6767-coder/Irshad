@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { useMessenger } from "@/features/messaging/use-messenger";
 import { ChatSidebar } from "@/components/chat/sidebar";
 import { MessageList } from "@/components/chat/message-list";
@@ -9,6 +9,8 @@ import { SettingsPanel } from "@/components/chat/settings-panel";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { listen } from "@tauri-apps/api/event";
+import { isDesktop } from "@/lib/desktop";
 
 type MessengerState = ReturnType<typeof useMessenger>;
 
@@ -18,6 +20,32 @@ type Props = {
 
 export function ChatShell({ messenger }: Props) {
   const [quickReply, setQuickReply] = useState("");
+
+  useEffect(() => {
+    if (!isDesktop()) return;
+    let unlistenQuickReply: (() => void) | undefined;
+    let unlistenAutostart: (() => void) | undefined;
+
+    listen("desktop:quick-reply", () => {
+      if (messenger.messages.length > 0) {
+        messenger.setSelectedMessageId(messenger.messages[messenger.messages.length - 1]?.id ?? null);
+      }
+    }).then((unlisten) => {
+      unlistenQuickReply = unlisten;
+    });
+
+    listen("desktop:toggle-autostart", () => {
+      messenger.setShowSettings(true);
+      messenger.setToast("Use Settings → Desktop to toggle autostart");
+    }).then((unlisten) => {
+      unlistenAutostart = unlisten;
+    });
+
+    return () => {
+      unlistenQuickReply?.();
+      unlistenAutostart?.();
+    };
+  }, [messenger]);
   const highlightedMessages = useMemo(
     () =>
       messenger.messages.map((message) => ({

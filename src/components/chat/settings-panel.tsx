@@ -3,6 +3,8 @@
 import type { ReactNode } from "react";
 import type { useMessenger } from "@/features/messaging/use-messenger";
 import { cn } from "@/lib/utils";
+import { enable, disable, isEnabled } from "@tauri-apps/plugin-autostart";
+import { useEffect, useState } from "react";
 
 type MessengerState = ReturnType<typeof useMessenger>;
 
@@ -20,6 +22,28 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 }
 
 export function SettingsPanel({ messenger }: Props) {
+  const [autostartEnabled, setAutostartEnabled] = useState(false);
+
+  useEffect(() => {
+    isEnabled().then(setAutostartEnabled).catch(() => setAutostartEnabled(false));
+  }, []);
+
+  const toggleAutostart = async () => {
+    try {
+      if (autostartEnabled) {
+        await disable();
+        setAutostartEnabled(false);
+        messenger.setToast("Autostart disabled");
+      } else {
+        await enable();
+        setAutostartEnabled(true);
+        messenger.setToast("Autostart enabled");
+      }
+    } catch {
+      messenger.setToast("Autostart is available in the desktop app only");
+    }
+  };
+
   return (
     <aside className="absolute inset-y-0 right-0 z-30 w-full max-w-xl border-l border-white/10 bg-[#0b0e14]/95 p-4 shadow-2xl shadow-black/50 backdrop-blur-xl">
       <div className="flex items-center justify-between border-b border-white/10 pb-3">
@@ -91,6 +115,18 @@ export function SettingsPanel({ messenger }: Props) {
           >
             Logout
           </button>
+        </Section>
+
+        <Section title="Desktop">
+          <button
+            className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-left text-sm"
+            onClick={toggleAutostart}
+          >
+            Autostart: {autostartEnabled ? "On" : "Off"}
+          </button>
+          <p className="text-xs text-white/45">
+            This toggles launch on login in the desktop client. It has no effect in the web browser.
+          </p>
         </Section>
 
         <Section title="Toast / Status">

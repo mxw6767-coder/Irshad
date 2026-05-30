@@ -159,6 +159,7 @@ export function useMessenger() {
   const [visiblePassword, setVisiblePassword] = useState(false);
   const [profileUnlocked, setProfileUnlocked] = useState(false);
   const messageListRef = useRef<HTMLDivElement | null>(null);
+  const idleTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     const entryGranted = window.localStorage.getItem(storageKeys.gate) === "true";
@@ -293,6 +294,29 @@ export function useMessenger() {
 
   useEffect(() => {
     if (gateStatus !== "ready") return;
+
+    const resetIdleTimer = () => {
+      if (idleTimeoutRef.current) {
+        window.clearTimeout(idleTimeoutRef.current);
+      }
+      idleTimeoutRef.current = window.setTimeout(() => {
+        logout();
+        setGateError("Session expired after inactivity. Enter the access code again.");
+      }, 15 * 60 * 1000);
+    };
+
+    const activityEvents = ["pointerdown", "keydown", "scroll", "mousemove", "touchstart"] as const;
+    activityEvents.forEach((eventName) => window.addEventListener(eventName, resetIdleTimer, { passive: true }));
+    resetIdleTimer();
+
+    return () => {
+      if (idleTimeoutRef.current) window.clearTimeout(idleTimeoutRef.current);
+      activityEvents.forEach((eventName) => window.removeEventListener(eventName, resetIdleTimer));
+    };
+  }, [gateStatus]);
+
+  useEffect(() => {
+    if (gateStatus !== "ready") return;
     const onScroll = () => {
       const container = messageListRef.current;
       if (!container) return;
@@ -342,7 +366,7 @@ export function useMessenger() {
       setGateError("Wrong access code");
       return;
     }
-    setCookie("irshad_entry_ok", "1");
+    setCookie("irshad_entry_ok", "1", 15 * 60);
     window.localStorage.setItem(storageKeys.gate, "true");
     setGateStatus(window.localStorage.getItem(storageKeys.onboarding) === "true" ? "ready" : "need_profile");
     setGateError(null);
@@ -409,7 +433,7 @@ export function useMessenger() {
       window.localStorage.setItem(storageKeys.activeUser, activeUser);
       window.localStorage.setItem(storageKeys.onboarding, "true");
       setRegisteredProfiles([...getRegisteredProfiles(), activeUser]);
-      setCookie(`irshad_profile_${activeUser.toLowerCase()}`, "1");
+      setCookie(`irshad_profile_${activeUser.toLowerCase()}`, "1", 365 * 24 * 60 * 60);
       setGateStatus("ready");
       setProfileUnlocked(true);
       setProfileError(null);
@@ -423,7 +447,7 @@ export function useMessenger() {
     window.localStorage.setItem(storageKeys.activeUser, activeUser);
     window.localStorage.setItem(storageKeys.onboarding, "true");
     setRegisteredProfiles([...getRegisteredProfiles(), activeUser]);
-    setCookie(`irshad_profile_${activeUser.toLowerCase()}`, "1");
+    setCookie(`irshad_profile_${activeUser.toLowerCase()}`, "1", 365 * 24 * 60 * 60);
     setGateStatus("ready");
     setProfileUnlocked(true);
     setProfileError(null);
@@ -440,9 +464,13 @@ export function useMessenger() {
     window.localStorage.removeItem(storageKeys.gate);
     window.localStorage.removeItem(storageKeys.onboarding);
     window.localStorage.removeItem(storageKeys.activeUser);
+    window.localStorage.removeItem(storageKeys.profileRegistry);
     clearCookie("irshad_entry_ok");
     clearCookie("irshad_profile_cat");
     clearCookie("irshad_profile_fox");
+    clearCookie("irshad_profile_owl");
+    clearCookie("irshad_profile_bear");
+    clearCookie("irshad_profile_lynx");
     setGateStatus("locked");
     setEntryPasswordInput("");
     setProfilePassword("");

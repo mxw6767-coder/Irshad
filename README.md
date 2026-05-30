@@ -49,14 +49,22 @@ A dark-themed end-to-end encrypted messenger scaffold for a small trusted group.
 
 - Run `npm run tauri:dev` for local desktop development.
 - Run `npm run tauri:build` to generate the Windows installer (`setup.exe`) via NSIS.
+- Run `npm run icons` before the desktop build to regenerate Windows icon assets.
 - The desktop client keeps the same web UI but can also show native notifications and tray behavior.
 - For quick reply, use the compact reply drawer that opens from the notification/tray flow.
+- Use the tray menu for open, quick reply, autostart, and quit actions.
 
 ## Private repo strategy
 
 - Keep the GitHub repo private if you want the source hidden.
 - Vercel can still deploy from a private GitHub repo when connected through the Vercel Git integration; if your account plan or org policy blocks it, keep deployment on a separate mirrored repo or use a deploy token workflow.
 - Do not put secrets in code; keep them in Vercel, Railway, and local `.env` files only.
+
+## Access lock
+
+- The entry code is enforced with `NEXT_PUBLIC_ENTRY_PASSWORD`.
+- The access session expires after 15 minutes of inactivity.
+- After expiration, the app logs out and requires the access code again.
 
 ## Environment variables
 
