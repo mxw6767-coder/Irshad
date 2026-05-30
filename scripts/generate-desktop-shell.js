@@ -17,19 +17,24 @@ const html = `<!doctype html>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Irshad</title>
-    <meta http-equiv="refresh" content="0;url=${appUrl}" />
     <style>
       html, body {
         margin: 0;
         width: 100%;
         height: 100%;
         background: #090b10;
-        color: white;
-        font-family: Segoe UI, Inter, system-ui, sans-serif;
       }
-      body {
+      .center {
+        position: fixed;
+        inset: 0;
         display: grid;
         place-items: center;
+        color: rgba(255,255,255,.75);
+        font-family: Segoe UI, Inter, system-ui, sans-serif;
+        background:
+          radial-gradient(circle at 20% 20%, rgba(88,101,242,.18), transparent 28%),
+          radial-gradient(circle at 80% 25%, rgba(0,194,255,.12), transparent 22%),
+          linear-gradient(180deg, #090b10 0%, #0b0d12 100%);
       }
       .card {
         max-width: 560px;
@@ -43,10 +48,10 @@ const html = `<!doctype html>
       h1 {
         margin: 0 0 10px;
         font-size: 24px;
+        color: white;
       }
       p {
         margin: 0;
-        color: rgba(255,255,255,0.7);
         line-height: 1.6;
       }
       code {
@@ -58,12 +63,13 @@ const html = `<!doctype html>
     </script>
   </head>
   <body>
-    <div class="card">
-      <h1>Launching Irshad</h1>
-      <p>
-        If the app does not open automatically, go to
-        <code>${appUrl}</code>.
-      </p>
+    <div class="center">
+      <div class="card">
+        <h1>Launching Irshad</h1>
+        <p>
+          Opening the live app directly in this desktop window.
+        </p>
+      </div>
     </div>
   </body>
 </html>`;
