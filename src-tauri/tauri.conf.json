@@ -26,7 +26,9 @@
   "bundle": {
     "active": true,
     "targets": ["nsis"],
+    "shortDescription": "Private encrypted messenger for two trusted users.",
     "longDescription": "Irshad is a private end-to-end encrypted messenger for two trusted users.",
+    "publisher": "Irshad",
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

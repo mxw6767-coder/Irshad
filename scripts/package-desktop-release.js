@@ -3,7 +3,7 @@ const path = require("path");
 
 const root = process.cwd();
 const source = path.join(root, "src-tauri", "target", "release", "bundle", "nsis", "Irshad_0.1.0_x64-setup.exe");
-const distDir = path.join(root, "release");
+const distDir = path.join(root, "release", "v0.1.0");
 const targetExe = path.join(distDir, "Irshad-Setup-x64.exe");
 const notesPath = path.join(distDir, "Irshad-Release-Notes.txt");
 
