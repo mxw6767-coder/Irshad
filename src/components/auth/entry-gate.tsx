@@ -72,7 +72,7 @@ export function EntryGate({ messenger }: Props) {
             </div>
 
             <div className="grid grid-cols-2 gap-2">
-              {(["Cat", "Fox"] as const).map((profile) => (
+              {messenger.availableProfileOptions.map((profile) => (
                 <button
                   key={profile}
                   className={`rounded-2xl border px-3 py-3 text-left ${
@@ -81,7 +81,9 @@ export function EntryGate({ messenger }: Props) {
                   onClick={() => messenger.switchProfile(profile)}
                 >
                   <div className="text-sm font-medium">{profile}</div>
-                  <div className="text-xs text-white/45">{profile === "Cat" ? "Quiet operator" : "Fast operator"}</div>
+                  <div className="text-xs text-white/45">
+                    {profile === "Cat" ? "Quiet operator" : profile === "Fox" ? "Fast operator" : "Available"}
+                  </div>
                 </button>
               ))}
             </div>
@@ -90,7 +92,7 @@ export function EntryGate({ messenger }: Props) {
               value={gate.profilePassword}
               onChange={(event) => gate.setProfilePassword(event.target.value)}
               type="password"
-              placeholder={`${messenger.activeUser} password`}
+              placeholder={`${messenger.activeUser} password (max 5-char name)`}
               aria-label="Profile password"
             />
 

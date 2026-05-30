@@ -54,4 +54,4 @@ export type ComposerAttachment = {
   kind: "image" | "video" | "file";
 };
 
-export type ProfileName = "Cat" | "Fox";
+export type ProfileName = "Cat" | "Fox" | "Owl" | "Bear" | "Lynx";

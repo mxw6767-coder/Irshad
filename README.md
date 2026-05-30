@@ -62,3 +62,9 @@ A dark-themed end-to-end encrypted messenger scaffold for a small trusted group.
 - The active profile is stored in this browser for this device.
 - The access cookie keeps the app locked behind the entry code on repeat visits.
 - IP binding is not used; browser/device persistence is the reliable approach here.
+
+## Profile rules
+
+- Allowed animal names are short and capped at 5 characters.
+- If `Cat` or `Fox` are already taken, the gate shows fallback options like `Owl`, `Bear`, and `Lynx`.
+- Each animal name can be registered once per browser/profile store.

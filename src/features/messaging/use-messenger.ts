@@ -10,6 +10,7 @@ import { getClientSocket } from "@/lib/socket";
 export type AppSection = "chat" | "settings";
 export type DemoUser = ProfileName;
 export type ComposerMode = "compose" | "reply" | "edit";
+export const profileOptions: ProfileName[] = ["Cat", "Fox", "Owl", "Bear", "Lynx"];
 
 const nowLabel = () => new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
@@ -104,6 +105,10 @@ const storageKeys = {
   activeUser: "irshad.active.profile",
   profileCat: "irshad.profile.cat.password",
   profileFox: "irshad.profile.fox.password",
+  profileOwl: "irshad.profile.owl.password",
+  profileBear: "irshad.profile.bear.password",
+  profileLynx: "irshad.profile.lynx.password",
+  profileRegistry: "irshad.profile.registry",
   onboarding: "irshad.profile.onboarded",
 };
 
@@ -127,7 +132,13 @@ export function useMessenger() {
   const [conversations, setConversations] = useState(conversationSeed);
   const [messages, setMessages] = useState(messageSeed);
   const [activeConversationId, setActiveConversationId] = useState("alpha");
-  const [onlineUsers, setOnlineUsers] = useState<Record<DemoUser, boolean>>({ Cat: true, Fox: true });
+  const [onlineUsers, setOnlineUsers] = useState<Record<DemoUser, boolean>>({
+    Cat: true,
+    Fox: true,
+    Owl: false,
+    Bear: false,
+    Lynx: false,
+  });
   const [typingUser, setTypingUser] = useState<string | null>("Cat");
   const [connectionState, setConnectionState] = useState<"connecting" | "connected" | "degraded">("connected");
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
@@ -152,7 +163,7 @@ export function useMessenger() {
     const entryGranted = window.localStorage.getItem(storageKeys.gate) === "true";
     const onboarded = window.localStorage.getItem(storageKeys.onboarding) === "true";
     const storedProfile = window.localStorage.getItem(storageKeys.activeUser);
-    if (storedProfile === "Cat" || storedProfile === "Fox") setActiveUser(storedProfile);
+    if (profileOptions.includes(storedProfile as ProfileName)) setActiveUser(storedProfile as ProfileName);
     if (entryGranted) {
       setGateStatus(onboarded ? "ready" : "need_profile");
       setProfileUnlocked(onboarded);
@@ -332,8 +343,44 @@ export function useMessenger() {
     setGateError(null);
   };
 
+  const getProfileKey = (profile: ProfileName) => {
+    switch (profile) {
+      case "Cat":
+        return storageKeys.profileCat;
+      case "Fox":
+        return storageKeys.profileFox;
+      case "Owl":
+        return storageKeys.profileOwl;
+      case "Bear":
+        return storageKeys.profileBear;
+      case "Lynx":
+        return storageKeys.profileLynx;
+    }
+  };
+
+  const getRegisteredProfiles = () => {
+    try {
+      return JSON.parse(window.localStorage.getItem(storageKeys.profileRegistry) ?? "[]") as ProfileName[];
+    } catch {
+      return [];
+    }
+  };
+
+  const setRegisteredProfiles = (profiles: ProfileName[]) => {
+    window.localStorage.setItem(storageKeys.profileRegistry, JSON.stringify(Array.from(new Set(profiles))));
+  };
+
+  const availableProfileOptions = profileOptions.filter((profile) => {
+    const registered = getRegisteredProfiles();
+    return !registered.includes(profile) || profile === activeUser;
+  });
+
   const saveProfile = () => {
-    const passwordStoreKey = activeUser === "Cat" ? storageKeys.profileCat : storageKeys.profileFox;
+    if (activeUser.length > 5) {
+      setProfileError("Profile name must be 5 characters or less");
+      return;
+    }
+    const passwordStoreKey = getProfileKey(activeUser);
     const existing = window.localStorage.getItem(passwordStoreKey);
     if (profileSetupMode === "register") {
       if (!profilePassword || profilePassword.length < 6) {
@@ -348,9 +395,15 @@ export function useMessenger() {
         setProfileError("Profile already exists. Switch to login.");
         return;
       }
+      const registeredProfiles = getRegisteredProfiles();
+      if (registeredProfiles.includes(activeUser) && !existing) {
+        setProfileError("That animal name is already reserved");
+        return;
+      }
       window.localStorage.setItem(passwordStoreKey, profilePassword);
       window.localStorage.setItem(storageKeys.activeUser, activeUser);
       window.localStorage.setItem(storageKeys.onboarding, "true");
+      setRegisteredProfiles([...getRegisteredProfiles(), activeUser]);
       setCookie(`irshad_profile_${activeUser.toLowerCase()}`, "1");
       setGateStatus("ready");
       setProfileUnlocked(true);
@@ -364,6 +417,7 @@ export function useMessenger() {
     }
     window.localStorage.setItem(storageKeys.activeUser, activeUser);
     window.localStorage.setItem(storageKeys.onboarding, "true");
+    setRegisteredProfiles([...getRegisteredProfiles(), activeUser]);
     setCookie(`irshad_profile_${activeUser.toLowerCase()}`, "1");
     setGateStatus("ready");
     setProfileUnlocked(true);
@@ -531,6 +585,7 @@ export function useMessenger() {
   return {
     gateStatus,
     gateCopy,
+    availableProfileOptions,
     profileUnlocked,
     section,
     setSection,
