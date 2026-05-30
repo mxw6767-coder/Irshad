@@ -5,8 +5,8 @@
   "identifier": "com.irshad.desktop",
   "build": {
     "beforeDevCommand": "npm run dev",
-    "beforeBuildCommand": "npm run build",
-    "frontendDist": "../.next",
+    "beforeBuildCommand": "npm run desktop:shell",
+    "frontendDist": "../desktop-dist",
     "devUrl": "http://localhost:3000"
   },
   "app": {
@@ -16,7 +16,8 @@
         "width": 1440,
         "height": 960,
         "resizable": true,
-        "fullscreen": false
+        "fullscreen": false,
+        "decorations": false
       }
     ],
     "security": {

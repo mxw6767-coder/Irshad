@@ -10,6 +10,7 @@
     "postinstall": "prisma generate",
     "icons": "node scripts/generate-icons.js",
     "branding": "node scripts/generate-desktop-branding.js",
+    "desktop:shell": "node scripts/generate-desktop-shell.js",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build",

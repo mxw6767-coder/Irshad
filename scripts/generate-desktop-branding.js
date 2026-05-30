@@ -29,8 +29,9 @@ for radius, color in [
     draw.ellipse((x0, y0, x1, y1), fill=color)
 
 # Main ring
-draw.ellipse((120, 120, 904, 904), fill=(18, 20, 28, 255), outline=(118, 124, 255, 255), width=18)
-draw.ellipse((164, 164, 860, 860), outline=(0, 194, 255, 120), width=8)
+draw.ellipse((104, 104, 920, 920), fill=(18, 20, 28, 255), outline=(118, 124, 255, 255), width=22)
+draw.ellipse((150, 150, 874, 874), outline=(0, 194, 255, 150), width=10)
+draw.ellipse((198, 198, 826, 826), outline=(255, 255, 255, 18), width=2)
 
 font_paths = [
     r"C:\\Windows\\Fonts\\segoeuib.ttf",
@@ -47,13 +48,15 @@ for font_path in font_paths:
 
 phi_bbox = draw.textbbox((0, 0), "Φ", font=font_phi)
 phi_x = (size - (phi_bbox[2] - phi_bbox[0])) // 2
-phi_y = 160
-draw.text((phi_x, phi_y), "Φ", font=font_phi, fill=(240, 242, 255, 245))
+phi_y = 132
+draw.text((phi_x, phi_y), "Φ", font=font_phi, fill=(250, 250, 255, 255))
+draw.text((phi_x - 3, phi_y - 3), "Φ", font=font_phi, fill=(88, 101, 242, 90))
 
 v_bbox = draw.textbbox((0, 0), "V", font=font_v)
 v_x = (size - (v_bbox[2] - v_bbox[0])) // 2
-v_y = 390
+v_y = 404
 draw.text((v_x, v_y), "V", font=font_v, fill=(0, 194, 255, 255))
+draw.text((v_x - 2, v_y - 2), "V", font=font_v, fill=(255, 255, 255, 120))
 
 # Accent lines
 draw.rounded_rectangle((280, 790, 744, 824), radius=16, fill=(88, 101, 242, 255))
