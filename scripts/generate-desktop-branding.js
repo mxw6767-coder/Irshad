@@ -20,18 +20,17 @@ draw = ImageDraw.Draw(img)
 
 # Background glow layers
 for radius, color in [
-    (430, (96, 100, 255, 55)),
-    (360, (0, 194, 255, 45)),
-    (260, (138, 92, 255, 60)),
+    (410, (96, 100, 255, 52)),
+    (330, (0, 194, 255, 42)),
+    (240, (138, 92, 255, 58)),
 ]:
     x0 = y0 = (size // 2) - radius
     x1 = y1 = (size // 2) + radius
     draw.ellipse((x0, y0, x1, y1), fill=color)
 
 # Main ring
-draw.ellipse((104, 104, 920, 920), fill=(18, 20, 28, 255), outline=(118, 124, 255, 255), width=22)
-draw.ellipse((150, 150, 874, 874), outline=(0, 194, 255, 150), width=10)
-draw.ellipse((198, 198, 826, 826), outline=(255, 255, 255, 18), width=2)
+draw.ellipse((108, 108, 916, 916), fill=(18, 20, 28, 255), outline=(118, 124, 255, 255), width=24)
+draw.ellipse((154, 154, 870, 870), outline=(0, 194, 255, 160), width=12)
 
 font_paths = [
     r"C:\\Windows\\Fonts\\segoeuib.ttf",
@@ -39,8 +38,8 @@ font_paths = [
 ]
 for font_path in font_paths:
     try:
-        font_phi = ImageFont.truetype(font_path, 440)
-        font_v = ImageFont.truetype(font_path, 270)
+        font_phi = ImageFont.truetype(font_path, 540)
+        font_v = ImageFont.truetype(font_path, 250)
         break
     except Exception:
         font_phi = ImageFont.load_default()
@@ -48,19 +47,15 @@ for font_path in font_paths:
 
 phi_bbox = draw.textbbox((0, 0), "Φ", font=font_phi)
 phi_x = (size - (phi_bbox[2] - phi_bbox[0])) // 2
-phi_y = 132
+phi_y = 82
 draw.text((phi_x, phi_y), "Φ", font=font_phi, fill=(250, 250, 255, 255))
 draw.text((phi_x - 3, phi_y - 3), "Φ", font=font_phi, fill=(88, 101, 242, 90))
 
 v_bbox = draw.textbbox((0, 0), "V", font=font_v)
 v_x = (size - (v_bbox[2] - v_bbox[0])) // 2
-v_y = 404
+v_y = 456
 draw.text((v_x, v_y), "V", font=font_v, fill=(0, 194, 255, 255))
 draw.text((v_x - 2, v_y - 2), "V", font=font_v, fill=(255, 255, 255, 120))
-
-# Accent lines
-draw.rounded_rectangle((280, 790, 744, 824), radius=16, fill=(88, 101, 242, 255))
-draw.rounded_rectangle((340, 842, 684, 866), radius=12, fill=(0, 194, 255, 180))
 
 img.save(out_dir / "icon.png")
 
