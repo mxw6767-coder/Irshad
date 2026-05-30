@@ -33,6 +33,17 @@ A dark-themed end-to-end encrypted messenger scaffold for a small trusted group.
 - `Railway`: deploy `server.js` with `npm run realtime`
 - `Supabase`: use PostgreSQL for app data and ciphertext storage
 
+## Setup tips
+
+- Keep `DATABASE_URL` pointed at the pooled Supabase URL for Vercel.
+- Keep `DIRECT_URL` pointed at the direct Supabase URL for migrations and persistent runtimes.
+- Set `NEXT_PUBLIC_SOCKET_URL` to the Railway public realtime endpoint.
+- Set `NEXT_PUBLIC_APP_URL` to the Vercel production URL after the first deploy.
+- Run `npm run build` locally before deploying to catch type issues early.
+- Use the `master` branch for deployment unless you intentionally create a release branch.
+- Keep secrets out of the repo; store them only in Vercel and Railway variables.
+- If a deployment fails, check whether Prisma client generation ran during install.
+
 ## Environment variables
 
 - `DATABASE_URL`: Supabase pooled connection string for Vercel
