@@ -25,6 +25,7 @@ export function ChatShell({ messenger }: Props) {
     if (!isDesktop()) return;
     let unlistenQuickReply: (() => void) | undefined;
     let unlistenAutostart: (() => void) | undefined;
+    let unlistenTrayPreference: (() => void) | undefined;
 
     listen("desktop:quick-reply", () => {
       if (messenger.messages.length > 0) {
@@ -41,11 +42,20 @@ export function ChatShell({ messenger }: Props) {
       unlistenAutostart = unlisten;
     });
 
+    listen("desktop:toggle-minimize-to-tray", () => {
+      messenger.setShowSettings(true);
+      messenger.setToast("Use Settings → Desktop to change tray close behavior");
+    }).then((unlisten) => {
+      unlistenTrayPreference = unlisten;
+    });
+
     return () => {
       unlistenQuickReply?.();
       unlistenAutostart?.();
+      unlistenTrayPreference?.();
     };
   }, [messenger]);
+
   const highlightedMessages = useMemo(
     () =>
       messenger.messages.map((message) => ({

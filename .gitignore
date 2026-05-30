@@ -5,3 +5,5 @@ node_modules
 *.log
 dev.db
 package-lock.json
+src-tauri/target
+src-tauri/gen

@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import type { useMessenger } from "@/features/messaging/use-messenger";
+import { getDesktopPreferences, setMinimizeToTrayOnClose } from "@/lib/desktop";
 import { cn } from "@/lib/utils";
 import { enable, disable, isEnabled } from "@tauri-apps/plugin-autostart";
 import { useEffect, useState } from "react";
@@ -23,9 +24,13 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 
 export function SettingsPanel({ messenger }: Props) {
   const [autostartEnabled, setAutostartEnabled] = useState(false);
+  const [minimizeToTrayOnClose, setMinimizeToTrayOnCloseState] = useState(true);
 
   useEffect(() => {
     isEnabled().then(setAutostartEnabled).catch(() => setAutostartEnabled(false));
+    getDesktopPreferences()
+      .then((preferences) => setMinimizeToTrayOnCloseState(preferences.minimizeToTrayOnClose))
+      .catch(() => setMinimizeToTrayOnCloseState(true));
   }, []);
 
   const toggleAutostart = async () => {
@@ -41,6 +46,17 @@ export function SettingsPanel({ messenger }: Props) {
       }
     } catch {
       messenger.setToast("Autostart is available in the desktop app only");
+    }
+  };
+
+  const toggleMinimizeToTray = async () => {
+    try {
+      const nextValue = !minimizeToTrayOnClose;
+      const preferences = await setMinimizeToTrayOnClose(nextValue);
+      setMinimizeToTrayOnCloseState(preferences.minimizeToTrayOnClose);
+      messenger.setToast(nextValue ? "Close now hides to tray" : "Close now exits the app");
+    } catch {
+      messenger.setToast("Tray preference is available in the desktop app only");
     }
   };
 
@@ -124,8 +140,14 @@ export function SettingsPanel({ messenger }: Props) {
           >
             Autostart: {autostartEnabled ? "On" : "Off"}
           </button>
+          <button
+            className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-left text-sm"
+            onClick={toggleMinimizeToTray}
+          >
+            Minimize to tray on close: {minimizeToTrayOnClose ? "On" : "Off"}
+          </button>
           <p className="text-xs text-white/45">
-            This toggles launch on login in the desktop client. It has no effect in the web browser.
+            These toggles only affect the desktop client.
           </p>
         </Section>
 

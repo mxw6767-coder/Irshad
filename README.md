@@ -53,6 +53,23 @@ A dark-themed end-to-end encrypted messenger scaffold for a small trusted group.
 - The desktop client keeps the same web UI but can also show native notifications and tray behavior.
 - For quick reply, use the compact reply drawer that opens from the notification/tray flow.
 - Use the tray menu for open, quick reply, autostart, and quit actions.
+- The desktop close button can either minimize to tray or exit, controlled from Settings → Desktop.
+
+## Release checklist
+
+1. Confirm `.env.production` / Vercel / Railway variables are set correctly.
+2. Run `npm install` once to ensure all packages and Prisma generate cleanly.
+3. Run `npm run build` and fix any web build errors first.
+4. Run `npm run tauri:build` on Windows to produce the installer bundle.
+5. Verify the output path under `src-tauri/target/release/bundle/nsis/`.
+6. Test the installer on a clean Windows VM or spare machine.
+7. Confirm:
+   - entry gate still requires `NEXT_PUBLIC_ENTRY_PASSWORD`
+   - 15-minute idle lock still returns to `/entry`
+   - tray open / quick reply / minimize-to-tray work
+   - autostart toggle persists
+   - notifications appear on new messages
+8. Only after those checks, share the `setup.exe` with someone else.
 
 ## Private repo strategy
 
