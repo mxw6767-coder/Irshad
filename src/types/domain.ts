@@ -53,3 +53,5 @@ export type ComposerAttachment = {
   sizeLabel: string;
   kind: "image" | "video" | "file";
 };
+
+export type ProfileName = "Cat" | "Fox";

@@ -37,10 +37,19 @@ export function SettingsPanel({ messenger }: Props) {
 
       <div className="mt-4 grid gap-4 overflow-y-auto pb-4">
         <Section title="Appearance">
-          <button className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-left text-sm" onClick={() => messenger.setToast("Theme updated")}>Dark premium</button>
+          <button className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-left text-sm" onClick={() => messenger.setToast("Theme updated")}>
+            Dark premium
+          </button>
           <button className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-left text-sm" onClick={() => messenger.setReducedMotion((current) => !current)}>
             Reduced motion: {messenger.reducedMotion ? "On" : "Off"}
           </button>
+        </Section>
+
+        <Section title="Profiles">
+          <div className="space-y-2 text-sm text-white/65">
+            <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2">Fox · trusted device</div>
+            <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2">Cat · trusted device</div>
+          </div>
         </Section>
 
         <Section title="Notifications">
@@ -55,31 +64,33 @@ export function SettingsPanel({ messenger }: Props) {
         </Section>
 
         <Section title="Privacy">
-          <button className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-left text-sm" onClick={() => messenger.setToast("Privacy options ready")}>Message previews hidden</button>
-          <button className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-left text-sm" onClick={() => messenger.setToast("Export data queued")}>Export data</button>
-        </Section>
-
-        <Section title="Devices">
-          {messenger.activeConversation ? (
-            <div className="space-y-2 text-sm text-white/65">
-              <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2">Vinayak Desktop · trusted</div>
-              <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2">Friend Laptop · trusted</div>
-            </div>
-          ) : null}
+          <button className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-left text-sm" onClick={() => messenger.setToast("Privacy options ready")}>
+            Message previews hidden
+          </button>
+          <button className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-left text-sm" onClick={() => messenger.setToast("Export data queued")}>
+            Export data
+          </button>
         </Section>
 
         <Section title="Security">
-          <button className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-left text-sm" onClick={() => messenger.setToast("Sessions inspected")}>Session management</button>
-          <button className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-left text-sm" onClick={() => messenger.setToast("Device revocation ready")}>Device management</button>
+          <button className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-left text-sm" onClick={() => messenger.setToast("Sessions inspected")}>
+            Session management
+          </button>
+          <button className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-left text-sm" onClick={() => messenger.setToast("Device revocation ready")}>
+            Device management
+          </button>
         </Section>
 
         <Section title="Toast / Status">
           <div className={cn("rounded-2xl border border-white/10 bg-white/5 px-3 py-3 text-sm", messenger.toast ? "text-white" : "text-white/45")}>
             {messenger.toast ?? "No recent events"}
           </div>
-          <button className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-left text-sm" onClick={() => messenger.setToast(null)}>Clear toast</button>
+          <button className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-left text-sm" onClick={() => messenger.setToast(null)}>
+            Clear toast
+          </button>
         </Section>
       </div>
     </aside>
   );
 }
+

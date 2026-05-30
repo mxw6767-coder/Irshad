@@ -1,21 +1,23 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { ChatMessage, ComposerAttachment, ConversationSummary } from "@/types/domain";
+import type { ChatMessage, ComposerAttachment, ConversationSummary, ProfileName } from "@/types/domain";
 import { createEncryptedMessage } from "@/features/messaging/send-message";
-import { markMessageDelivered, markMessageRead, softDeleteMessage, editMessage } from "@/features/messaging/message-state";
+import { markMessageDelivered, markMessageRead, softDeleteMessage } from "@/features/messaging/message-state";
 import { sealPlaintext } from "@/lib/crypto/primitives";
 import { getClientSocket } from "@/lib/socket";
 
 export type AppSection = "chat" | "settings";
-export type DemoUser = "Vinayak" | "Friend";
+export type DemoUser = ProfileName;
 export type ComposerMode = "compose" | "reply" | "edit";
+
+const nowLabel = () => new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
 const conversationSeed: ConversationSummary[] = [
   {
     id: "alpha",
-    handle: "@friend",
-    title: "Friend",
+    handle: "@fox",
+    title: "Fox",
     presence: "online",
     status: "Encrypted direct chat",
     unreadCount: 3,
@@ -25,8 +27,8 @@ const conversationSeed: ConversationSummary[] = [
   },
   {
     id: "beta",
-    handle: "@vinayak",
-    title: "Vinayak",
+    handle: "@cat",
+    title: "Cat",
     presence: "last seen recently",
     status: "Private workspace",
     unreadCount: 0,
@@ -35,15 +37,13 @@ const conversationSeed: ConversationSummary[] = [
   },
 ];
 
-const nowLabel = () => new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-
 const messageSeed: ChatMessage[] = [
   {
     id: "m-1",
     conversationId: "alpha",
-    senderId: "Friend",
-    receiverId: "Vinayak",
-    senderDeviceId: "friend-device",
+    senderId: "Fox",
+    receiverId: "Cat",
+    senderDeviceId: "fox-device",
     ciphertext: "RW5jcnlwdGVkIGNoYW5uZWwgaXMgdXA=",
     nonce: "ZGVtby1ub25jZS0x",
     plaintextPreview: "Encrypted channel is up.",
@@ -57,9 +57,9 @@ const messageSeed: ChatMessage[] = [
   {
     id: "m-2",
     conversationId: "alpha",
-    senderId: "Vinayak",
-    receiverId: "Friend",
-    senderDeviceId: "vinayak-device",
+    senderId: "Cat",
+    receiverId: "Fox",
+    senderDeviceId: "cat-device",
     ciphertext: "S2VlcCB0aGUgcGF5bG9hZHMgY2xpZW50LXNpZGUgb25seS4=",
     nonce: "ZGVtby1ub25jZS0y",
     plaintextPreview: "Keep the payloads client-side only.",
@@ -71,9 +71,9 @@ const messageSeed: ChatMessage[] = [
   {
     id: "m-3",
     conversationId: "alpha",
-    senderId: "Friend",
-    receiverId: "Vinayak",
-    senderDeviceId: "friend-device",
+    senderId: "Fox",
+    receiverId: "Cat",
+    senderDeviceId: "fox-device",
     type: "separator",
     ciphertext: "",
     nonce: "",
@@ -97,17 +97,30 @@ type ComposerState = {
   draftKey: string;
 };
 
+type GateStatus = "locked" | "need_profile" | "ready";
+
+const storageKeys = {
+  gate: "irshad.entry.granted",
+  activeUser: "irshad.active.profile",
+  profileCat: "irshad.profile.cat.password",
+  profileFox: "irshad.profile.fox.password",
+  onboarding: "irshad.profile.onboarded",
+};
+
 export function useMessenger() {
+  const [gateStatus, setGateStatus] = useState<GateStatus>("locked");
+  const [gatePassword, setGatePassword] = useState("");
+  const [gateError, setGateError] = useState<string | null>(null);
   const [section, setSection] = useState<AppSection>("chat");
-  const [activeUser, setActiveUser] = useState<DemoUser>("Vinayak");
+  const [activeUser, setActiveUser] = useState<DemoUser>("Fox");
   const [search, setSearch] = useState("");
   const [conversationSearch, setConversationSearch] = useState("");
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [conversations, setConversations] = useState(conversationSeed);
   const [messages, setMessages] = useState(messageSeed);
   const [activeConversationId, setActiveConversationId] = useState("alpha");
-  const [onlineUsers, setOnlineUsers] = useState<Record<DemoUser, boolean>>({ Vinayak: true, Friend: true });
-  const [typingUser, setTypingUser] = useState<string | null>("Friend");
+  const [onlineUsers, setOnlineUsers] = useState<Record<DemoUser, boolean>>({ Cat: true, Fox: true });
+  const [typingUser, setTypingUser] = useState<string | null>("Cat");
   const [connectionState, setConnectionState] = useState<"connecting" | "connected" | "degraded">("connected");
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
@@ -115,10 +128,28 @@ export function useMessenger() {
   const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [pinnedOnly, setPinnedOnly] = useState(false);
   const [attachments] = useState(attachmentSeed);
-  const [composer, setComposer] = useState<ComposerState>({ text: "", draftKey: "alpha:Vinayak" });
+  const [composer, setComposer] = useState<ComposerState>({ text: "", draftKey: "alpha:Fox" });
   const [toast, setToast] = useState<string | null>(null);
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [profileSetupMode, setProfileSetupMode] = useState<"register" | "login">("register");
+  const [profilePassword, setProfilePassword] = useState("");
+  const [profileConfirmPassword, setProfileConfirmPassword] = useState("");
+  const [profileError, setProfileError] = useState<string | null>(null);
+  const [entryPasswordInput, setEntryPasswordInput] = useState("");
+  const [visiblePassword, setVisiblePassword] = useState(false);
   const messageListRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const entryGranted = window.localStorage.getItem(storageKeys.gate) === "true";
+    const onboarded = window.localStorage.getItem(storageKeys.onboarding) === "true";
+    const storedProfile = window.localStorage.getItem(storageKeys.activeUser);
+    if (storedProfile === "Cat" || storedProfile === "Fox") setActiveUser(storedProfile);
+    if (entryGranted) {
+      setGateStatus(onboarded ? "ready" : "need_profile");
+    } else {
+      setGateStatus("locked");
+    }
+  }, []);
 
   const activeConversation = useMemo(
     () => conversations.find((conversation) => conversation.id === activeConversationId) ?? conversations[0],
@@ -135,7 +166,6 @@ export function useMessenger() {
         conversation.lastMessage?.toLowerCase().includes(query)
       );
     });
-
     if (favoritesOnly) list = list.filter((conversation) => conversation.favorite);
     return list;
   }, [conversationSearch, conversations, favoritesOnly]);
@@ -151,16 +181,19 @@ export function useMessenger() {
   }, [activeConversationId, messages, pinnedOnly, search]);
 
   useEffect(() => {
+    if (gateStatus !== "ready") return;
     const storedDraft = window.localStorage.getItem(`draft:${activeConversationId}:${activeUser}`) ?? "";
     setComposer((current) => ({ ...current, text: storedDraft, draftKey: `${activeConversationId}:${activeUser}` }));
-  }, [activeConversationId, activeUser]);
+  }, [activeConversationId, activeUser, gateStatus]);
 
   useEffect(() => {
+    if (gateStatus !== "ready") return;
     window.localStorage.setItem(`draft:${composer.draftKey}`, composer.text);
     setDrafts((current) => ({ ...current, [composer.draftKey]: composer.text }));
-  }, [composer.draftKey, composer.text]);
+  }, [composer.draftKey, composer.text, gateStatus]);
 
   useEffect(() => {
+    if (gateStatus !== "ready") return;
     const socket = getClientSocket();
     socket.connect();
     setConnectionState("connecting");
@@ -229,9 +262,10 @@ export function useMessenger() {
       socket.off("message:receipt", handleReceipt);
       socket.disconnect();
     };
-  }, [activeConversationId, activeUser]);
+  }, [activeConversationId, activeUser, gateStatus]);
 
   useEffect(() => {
+    if (gateStatus !== "ready") return;
     const onScroll = () => {
       const container = messageListRef.current;
       if (!container) return;
@@ -242,9 +276,10 @@ export function useMessenger() {
     container?.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
     return () => container?.removeEventListener("scroll", onScroll);
-  }, [conversationMessages.length]);
+  }, [conversationMessages.length, gateStatus]);
 
   useEffect(() => {
+    if (gateStatus !== "ready") return;
     const handleKeyDown = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
@@ -257,22 +292,75 @@ export function useMessenger() {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [gateStatus]);
 
   const syncConversationPreview = (conversationId: string, preview: string) => {
     setConversations((current) =>
       current.map((conversation) =>
         conversation.id === conversationId
-          ? { ...conversation, lastMessage: preview, lastActiveAt: "Just now", unreadCount: activeUser === conversation.title ? 0 : conversation.unreadCount + 1 }
+          ? {
+              ...conversation,
+              lastMessage: preview,
+              lastActiveAt: "Just now",
+              unreadCount: activeUser === conversation.title ? 0 : conversation.unreadCount + 1,
+            }
           : conversation,
       ),
     );
   };
 
+  const submitEntryPassword = () => {
+    const expected = process.env.NEXT_PUBLIC_ENTRY_PASSWORD;
+    if (!expected || entryPasswordInput !== expected) {
+      setGateError("Wrong access code");
+      return;
+    }
+    document.cookie = "irshad_entry_ok=1; path=/; max-age=31536000; samesite=strict";
+    window.localStorage.setItem(storageKeys.gate, "true");
+    setGateStatus(window.localStorage.getItem(storageKeys.onboarding) === "true" ? "ready" : "need_profile");
+    setGateError(null);
+  };
+
+  const saveProfile = () => {
+    const passwordStoreKey = activeUser === "Cat" ? storageKeys.profileCat : storageKeys.profileFox;
+    const existing = window.localStorage.getItem(passwordStoreKey);
+    if (profileSetupMode === "register") {
+      if (!profilePassword || profilePassword.length < 6) {
+        setProfileError("Use a longer profile password");
+        return;
+      }
+      if (profilePassword !== profileConfirmPassword) {
+        setProfileError("Passwords do not match");
+        return;
+      }
+      if (existing) {
+        setProfileError("Profile already exists. Switch to login.");
+        return;
+      }
+      window.localStorage.setItem(passwordStoreKey, profilePassword);
+      window.localStorage.setItem(storageKeys.activeUser, activeUser);
+      window.localStorage.setItem(storageKeys.onboarding, "true");
+      document.cookie = `irshad_profile_${activeUser.toLowerCase()}=1; path=/; max-age=31536000; samesite=strict`;
+      setGateStatus("ready");
+      setProfileError(null);
+      return;
+    }
+
+    if (existing !== profilePassword) {
+      setProfileError("Wrong profile password");
+      return;
+    }
+    window.localStorage.setItem(storageKeys.activeUser, activeUser);
+    window.localStorage.setItem(storageKeys.onboarding, "true");
+    document.cookie = `irshad_profile_${activeUser.toLowerCase()}=1; path=/; max-age=31536000; samesite=strict`;
+    setGateStatus("ready");
+    setProfileError(null);
+  };
+
   const sendMessage = async (plaintext: string) => {
     const socket = getClientSocket();
-    const receiverId = activeUser === "Vinayak" ? "Friend" : "Vinayak";
-    const senderDeviceId = activeUser === "Vinayak" ? "vinayak-device" : "friend-device";
+    const receiverId = activeUser === "Fox" ? "Cat" : "Fox";
+    const senderDeviceId = activeUser === "Fox" ? "fox-device" : "cat-device";
     const sealed = await sealPlaintext(plaintext);
     const nextMessage = createEncryptedMessage({
       conversationId: activeConversationId,
@@ -378,7 +466,26 @@ export function useMessenger() {
     );
   };
 
+  const gateCopy = {
+    entryPasswordInput,
+    setEntryPasswordInput,
+    submitEntryPassword,
+    gateError,
+    visiblePassword,
+    setVisiblePassword,
+    profileSetupMode,
+    setProfileSetupMode,
+    profilePassword,
+    setProfilePassword,
+    profileConfirmPassword,
+    setProfileConfirmPassword,
+    profileError,
+    saveProfile,
+  };
+
   return {
+    gateStatus,
+    gateCopy,
     section,
     setSection,
     activeUser,

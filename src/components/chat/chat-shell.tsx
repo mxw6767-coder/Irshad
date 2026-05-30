@@ -1,21 +1,26 @@
 "use client";
 
 import { useMemo } from "react";
-import { useMessenger } from "@/features/messaging/use-messenger";
+import type { useMessenger } from "@/features/messaging/use-messenger";
 import { ChatSidebar } from "@/components/chat/sidebar";
 import { MessageList } from "@/components/chat/message-list";
 import { Composer } from "@/components/chat/composer";
 import { SettingsPanel } from "@/components/chat/settings-panel";
 import { cn } from "@/lib/utils";
 
-export function ChatShell() {
-  const messenger = useMessenger();
+type MessengerState = ReturnType<typeof useMessenger>;
 
+type Props = {
+  messenger: MessengerState;
+};
+
+export function ChatShell({ messenger }: Props) {
   const highlightedMessages = useMemo(
-    () => messenger.messages.map((message) => ({
-      ...message,
-      highlighted: messenger.search ? (message.displayText ?? message.plaintextPreview ?? "").toLowerCase().includes(messenger.search.toLowerCase()) : false,
-    })),
+    () =>
+      messenger.messages.map((message) => ({
+        ...message,
+        highlighted: messenger.search ? (message.displayText ?? message.plaintextPreview ?? "").toLowerCase().includes(messenger.search.toLowerCase()) : false,
+      })),
     [messenger.messages, messenger.search],
   );
 
@@ -23,7 +28,7 @@ export function ChatShell() {
     <main className="min-h-screen bg-[#0a0b0f] text-white">
       <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[320px_1fr]">
         <ChatSidebar messenger={messenger} />
-        <section className="relative flex min-h-screen flex-col border-l border-white/5 bg-gradient-to-b from-[#111318] to-[#0d0f14]">
+        <section className="relative flex min-h-screen flex-col border-l border-white/5 bg-gradient-to-b from-[#111318] via-[#0e1016] to-[#0b0d12]">
           <header className="sticky top-0 z-20 border-b border-white/5 bg-[#0e1016]/90 px-5 py-4 backdrop-blur-xl">
             <div className="flex items-center justify-between gap-4">
               <div className="min-w-0">

@@ -21,16 +21,16 @@ export function ChatSidebar({ messenger }: Props) {
           </div>
           <button
             className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs text-white/70 transition hover:bg-white/10"
-            onClick={() => messenger.setSection(messenger.section === "chat" ? "settings" : "chat")}
+            onClick={() => messenger.setShowSettings(true)}
           >
-            {messenger.section === "chat" ? "Settings" : "Chat"}
+            Settings
           </button>
         </div>
       </div>
 
       <div className="space-y-3 border-b border-white/5 px-4 py-4">
         <div className="grid grid-cols-2 gap-2">
-          {(["Vinayak", "Friend"] as const).map((user) => (
+          {(["Cat", "Fox"] as const).map((user) => (
             <button
               key={user}
               className={cn(
