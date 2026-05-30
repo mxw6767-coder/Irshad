@@ -9,9 +9,11 @@
     "realtime": "node server.js",
     "postinstall": "prisma generate",
     "icons": "node scripts/generate-icons.js",
+    "branding": "node scripts/generate-desktop-branding.js",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build",
+    "desktop:package": "npm run tauri:build && node scripts/package-desktop-release.js",
     "lint": "next lint",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev"

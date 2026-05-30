@@ -1,0 +1,78 @@
+const fs = require("fs");
+const path = require("path");
+const { spawnSync } = require("child_process");
+
+const outDir = path.join(process.cwd(), "src-tauri", "icons");
+if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
+
+const python = spawnSync(
+  "python",
+  [
+    "-c",
+    `
+from PIL import Image, ImageDraw, ImageFont
+from pathlib import Path
+
+out_dir = Path(r"${outDir.replace(/\\/g, "\\\\")}")
+size = 1024
+img = Image.new("RGBA", (size, size), (10, 11, 15, 255))
+draw = ImageDraw.Draw(img)
+
+# Background glow layers
+for radius, color in [
+    (430, (96, 100, 255, 55)),
+    (360, (0, 194, 255, 45)),
+    (260, (138, 92, 255, 60)),
+]:
+    x0 = y0 = (size // 2) - radius
+    x1 = y1 = (size // 2) + radius
+    draw.ellipse((x0, y0, x1, y1), fill=color)
+
+# Main ring
+draw.ellipse((120, 120, 904, 904), fill=(18, 20, 28, 255), outline=(118, 124, 255, 255), width=18)
+draw.ellipse((164, 164, 860, 860), outline=(0, 194, 255, 120), width=8)
+
+font_paths = [
+    r"C:\\Windows\\Fonts\\segoeuib.ttf",
+    r"C:\\Windows\\Fonts\\arialbd.ttf",
+]
+for font_path in font_paths:
+    try:
+        font_phi = ImageFont.truetype(font_path, 440)
+        font_v = ImageFont.truetype(font_path, 270)
+        break
+    except Exception:
+        font_phi = ImageFont.load_default()
+        font_v = ImageFont.load_default()
+
+phi_bbox = draw.textbbox((0, 0), "Φ", font=font_phi)
+phi_x = (size - (phi_bbox[2] - phi_bbox[0])) // 2
+phi_y = 160
+draw.text((phi_x, phi_y), "Φ", font=font_phi, fill=(240, 242, 255, 245))
+
+v_bbox = draw.textbbox((0, 0), "V", font=font_v)
+v_x = (size - (v_bbox[2] - v_bbox[0])) // 2
+v_y = 390
+draw.text((v_x, v_y), "V", font=font_v, fill=(0, 194, 255, 255))
+
+# Accent lines
+draw.rounded_rectangle((280, 790, 744, 824), radius=16, fill=(88, 101, 242, 255))
+draw.rounded_rectangle((340, 842, 684, 866), radius=12, fill=(0, 194, 255, 180))
+
+img.save(out_dir / "icon.png")
+
+sizes = [16, 32, 48, 64, 128, 256]
+for s in sizes:
+    img.resize((s, s), Image.Resampling.LANCZOS).save(out_dir / f"{s}x{s}.png")
+img.resize((1024, 1024), Image.Resampling.LANCZOS).save(out_dir / "128x128@2x.png")
+img.save(out_dir / "icon.ico", format="ICO", sizes=[(16,16),(32,32),(48,48),(64,64),(128,128),(256,256)])
+img.save(out_dir / "icon.icns", format="PNG")
+print("branding generated")
+`,
+  ],
+  { stdio: "inherit" },
+);
+
+if (python.status !== 0) {
+  process.exit(python.status ?? 1);
+}
