@@ -1,12 +1,14 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import type { useMessenger } from "@/features/messaging/use-messenger";
 import { ChatSidebar } from "@/components/chat/sidebar";
 import { MessageList } from "@/components/chat/message-list";
 import { Composer } from "@/components/chat/composer";
 import { SettingsPanel } from "@/components/chat/settings-panel";
 import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 type MessengerState = ReturnType<typeof useMessenger>;
 
@@ -15,6 +17,7 @@ type Props = {
 };
 
 export function ChatShell({ messenger }: Props) {
+  const [quickReply, setQuickReply] = useState("");
   const highlightedMessages = useMemo(
     () =>
       messenger.messages.map((message) => ({
@@ -76,9 +79,55 @@ export function ChatShell({ messenger }: Props) {
           ) : null}
 
           {messenger.showSettings ? <SettingsPanel messenger={messenger} /> : null}
+
+          {messenger.selectedMessageId ? (
+            <aside className="absolute bottom-6 right-6 z-40 w-full max-w-md rounded-[28px] border border-white/10 bg-[#10131a]/95 p-4 shadow-2xl shadow-black/50 backdrop-blur-xl">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.3em] text-white/35">Quick reply</p>
+                  <h3 className="mt-1 text-lg font-semibold">Reply in place</h3>
+                </div>
+                <button
+                  className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/70"
+                  onClick={() => messenger.setSelectedMessageId(null)}
+                >
+                  Close
+                </button>
+              </div>
+              <div className="mt-3 rounded-2xl border border-white/10 bg-white/5 p-3 text-sm text-white/70">
+                Message selected from notification. Quick reply here while you keep working.
+              </div>
+              <div className="mt-3 space-y-3">
+                <Input
+                  value={quickReply}
+                  onChange={(event) => setQuickReply(event.target.value)}
+                  placeholder="Type a quick reply..."
+                  aria-label="Quick reply"
+                />
+                <div className="flex items-center justify-between gap-3">
+                  <button
+                    className="text-sm text-white/50 underline decoration-white/20 underline-offset-4"
+                    onClick={() => messenger.setSelectedMessageId(null)}
+                  >
+                    Dismiss
+                  </button>
+                  <Button
+                    className="rounded-xl px-4 py-2"
+                    onClick={async () => {
+                      if (!quickReply.trim()) return;
+                      await messenger.sendMessage(quickReply.trim());
+                      setQuickReply("");
+                      messenger.setSelectedMessageId(null);
+                    }}
+                  >
+                    Send reply
+                  </Button>
+                </div>
+              </div>
+            </aside>
+          ) : null}
         </section>
       </div>
     </main>
   );
 }
-

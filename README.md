@@ -32,6 +32,7 @@ A dark-themed end-to-end encrypted messenger scaffold for a small trusted group.
 - `Vercel`: deploy the Next.js app from `mxw6767-coder/Irshad`
 - `Railway`: deploy `server.js` with `npm run realtime`
 - `Supabase`: use PostgreSQL for app data and ciphertext storage
+- `Tauri`: bundle the same web app into a Windows desktop client with installer output
 
 ## Setup tips
 
@@ -43,6 +44,19 @@ A dark-themed end-to-end encrypted messenger scaffold for a small trusted group.
 - Use the `master` branch for deployment unless you intentionally create a release branch.
 - Keep secrets out of the repo; store them only in Vercel and Railway variables.
 - If a deployment fails, check whether Prisma client generation ran during install.
+
+## Desktop build
+
+- Run `npm run tauri:dev` for local desktop development.
+- Run `npm run tauri:build` to generate the Windows installer (`setup.exe`) via NSIS.
+- The desktop client keeps the same web UI but can also show native notifications and tray behavior.
+- For quick reply, use the compact reply drawer that opens from the notification/tray flow.
+
+## Private repo strategy
+
+- Keep the GitHub repo private if you want the source hidden.
+- Vercel can still deploy from a private GitHub repo when connected through the Vercel Git integration; if your account plan or org policy blocks it, keep deployment on a separate mirrored repo or use a deploy token workflow.
+- Do not put secrets in code; keep them in Vercel, Railway, and local `.env` files only.
 
 ## Environment variables
 

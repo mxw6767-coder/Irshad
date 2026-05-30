@@ -6,6 +6,7 @@ import { createEncryptedMessage } from "@/features/messaging/send-message";
 import { markMessageDelivered, markMessageRead, softDeleteMessage } from "@/features/messaging/message-state";
 import { sealPlaintext } from "@/lib/crypto/primitives";
 import { getClientSocket } from "@/lib/socket";
+import { notifyIncomingMessage, isDesktop } from "@/lib/desktop";
 
 export type AppSection = "chat" | "settings";
 export type DemoUser = ProfileName;
@@ -244,6 +245,10 @@ export function useMessenger() {
           },
         ];
       });
+      if (isDesktop()) {
+        notifyIncomingMessage(event.senderId, "New encrypted message received");
+        setSelectedMessageId(event.messageId);
+      }
     };
 
     const handleTyping = ({ userId, isTyping }: { userId: string; isTyping: boolean }) => {
